@@ -1,0 +1,35 @@
+Dinosaur
+1:skin
+2:cloth
+3: teeth
+4: eye out
+5: eye in
+6: Mouth inside
+
+
+CrossBow:
+1: Handle
+2: Wood
+3: String
+4: Metal 
+5: Fiber Metal
+6: arrow tip
+7: arrow body
+8: arrow feathers
+9: trigger
+
+Pistol:
+1: handle
+2: scope
+3: trigger
+4: body
+
+SpaceGun:
+1: Handle
+2: Bottom Body
+3: Top body
+4: String thing
+5: Blue light
+6: Red Light
+7: Green Light
+8: trigger

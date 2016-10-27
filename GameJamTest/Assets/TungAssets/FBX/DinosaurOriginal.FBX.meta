@@ -1,0 +1,168 @@
+fileFormatVersion: 2
+guid: 47cac186d462396418b478f3731f5faf
+timeCreated: 1477006176
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: BodyMiddle
+    100002: BodyTop
+    100004: //RootNode
+    100006: JawBottom
+    100008: JawMiddle
+    100010: JawTop
+    100012: LeftArmBottom
+    100014: LeftArmHand
+    100016: LeftArmTop
+    100018: LeftLegBottom
+    100020: LeftLegTop
+    100022: RightArmBottom
+    100024: RightArmHand
+    100026: RightArmTop
+    100028: RightLegBottom
+    100030: RightLegTop
+    100032: TailBottom
+    100034: TailTip
+    100036: TailTop
+    400000: BodyMiddle
+    400002: BodyTop
+    400004: //RootNode
+    400006: JawBottom
+    400008: JawMiddle
+    400010: JawTop
+    400012: LeftArmBottom
+    400014: LeftArmHand
+    400016: LeftArmTop
+    400018: LeftLegBottom
+    400020: LeftLegTop
+    400022: RightArmBottom
+    400024: RightArmHand
+    400026: RightArmTop
+    400028: RightLegBottom
+    400030: RightLegTop
+    400032: TailBottom
+    400034: TailTip
+    400036: TailTop
+    2300000: BodyMiddle
+    2300002: BodyTop
+    2300004: //RootNode
+    2300006: JawBottom
+    2300008: JawMiddle
+    2300010: JawTop
+    2300012: LeftArmBottom
+    2300014: LeftArmHand
+    2300016: LeftArmTop
+    2300018: LeftLegBottom
+    2300020: LeftLegTop
+    2300022: RightArmBottom
+    2300024: RightArmHand
+    2300026: RightArmTop
+    2300028: RightLegBottom
+    2300030: RightLegTop
+    2300032: TailBottom
+    2300034: TailTip
+    2300036: TailTop
+    3300000: BodyMiddle
+    3300002: BodyTop
+    3300004: //RootNode
+    3300006: JawBottom
+    3300008: JawMiddle
+    3300010: JawTop
+    3300012: LeftArmBottom
+    3300014: LeftArmHand
+    3300016: LeftArmTop
+    3300018: LeftLegBottom
+    3300020: LeftLegTop
+    3300022: RightArmBottom
+    3300024: RightArmHand
+    3300026: RightArmTop
+    3300028: RightLegBottom
+    3300030: RightLegTop
+    3300032: TailBottom
+    3300034: TailTip
+    3300036: TailTop
+    4300000: BodyBottom
+    4300002: LeftLegTop
+    4300004: LeftLegBottom
+    4300006: RightLegTop
+    4300008: RightLegBottom
+    4300010: TailTop
+    4300012: TailBottom
+    4300014: TailTip
+    4300016: BodyMiddle
+    4300018: BodyTop
+    4300020: JawMiddle
+    4300022: JawTop
+    4300024: JawBottom
+    4300026: RightArmTop
+    4300028: RightArmBottom
+    4300030: RightArmHand
+    4300032: LeftArmTop
+    4300034: LeftArmBottom
+    4300036: LeftArmHand
+    7400000: Take 001
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleRotations: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

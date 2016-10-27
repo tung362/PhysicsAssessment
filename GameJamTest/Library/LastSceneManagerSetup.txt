@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/TungAssets/Scene/TestGrappleStage.unity
+  isLoaded: 1
+  isActive: 1

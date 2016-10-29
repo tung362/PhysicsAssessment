@@ -31,28 +31,42 @@ public class Grapple : MonoBehaviour
             WallCheck(AnchorConnectionPoints[AnchorConnectionPoints.Count - 1], transform.position);
             TheLine.GetComponent<LineRenderer>().SetVertexCount(AnchorConnectionPoints.Count + 1);
             TheLine.GetComponent<LineRenderer>().SetPositions(AnchorConnectionPoints.ToArray());
+
             TheLine.GetComponent<LineRenderer>().SetPosition(0, TheDistanceJoint.connectedAnchor);
-            TheLine.GetComponent<LineRenderer>().SetPosition(AnchorConnectionPoints.Count - 1, AnchorConnectionPoints[AnchorConnectionPoints.Count - 1]);
-            Test.transform.position = AnchorConnectionPoints[AnchorConnectionPoints.Count - 1];
+            TheLine.GetComponent<LineRenderer>().SetPosition(AnchorConnectionPoints.Count, AnchorConnectionPoints[AnchorConnectionPoints.Count - 1]);
+            //Test.transform.position = AnchorConnectionPoints[AnchorConnectionPoints.Count - 1];
         }
     }
 
     void WallCheck(Vector3 Start, Vector3 End)
     {
         RaycastHit2D hit = Physics2D.Linecast(Start, End);
+
+        Debug.DrawLine(Start, End);
         if (hit.transform.gameObject.name == "Platform")
         {
-            //Vector2 hitPoint = Vector2.zero;
+            //(hit.normal * 0.01f)
+            //AnchorConnectionPoints.Add(hit.point);
 
-            //if(TheDistanceJoint.connectedAnchor.x <= transform.position.x) hitPoint.x = hit.collider.bounds.max.x;
-            //else hitPoint.x = hit.collider.bounds.min.x;
+            Vector3 closestVectice = Vector3.zero;
+            float closestDistance = int.MaxValue;
+            foreach(Vector3 point in hit.transform.GetComponent<MeshFilter>().mesh.vertices)
+            {
+                Vector3 rotatedPoint = hit.transform.TransformDirection(new Vector3(point.x * (hit.transform.localScale.x + 0.015f),
+                                                                                    point.y * (hit.transform.localScale.y + 0.015f),
+                                                                                    point.z * (hit.transform.localScale.z + 0.015f)));
 
-            //if (TheDistanceJoint.connectedAnchor.y <= transform.position.y) hitPoint.y = hit.collider.bounds.min.y;
-            //else hitPoint.y = hit.collider.bounds.max.y;
+                float distance = Vector3.Distance(hit.point, hit.transform.position + rotatedPoint);
+                if(distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestVectice = rotatedPoint;
+                }
+            }
 
-            //AnchorConnectionPoints.Add(hitPoint);
-
-            AnchorConnectionPoints.Add(hit.point);
+            //Debug.Log((hit.transform.position + closestVectice).x);
+            Test.transform.position = hit.transform.position + closestVectice;
+            AnchorConnectionPoints.Add(hit.transform.position + closestVectice);
         }
     }
 }

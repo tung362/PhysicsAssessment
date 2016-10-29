@@ -19,7 +19,11 @@ public class GrappleShoot : MonoBehaviour
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit mouseHit;
 
-            if (Physics.Raycast(mouseRay, out mouseHit)) TheDistanceJoint.connectedAnchor = new Vector3(mouseHit.point.x, mouseHit.point.y, 0);
+            if (Physics.Raycast(mouseRay, out mouseHit))
+            {
+                TheDistanceJoint.distance = Vector3.Distance(new Vector3(transform.position.x, transform.position.y, 0), new Vector3(mouseHit.point.x, mouseHit.point.y, 0));
+                TheDistanceJoint.connectedAnchor = new Vector3(mouseHit.point.x, mouseHit.point.y, 0);
+            }
         }
     }
 }

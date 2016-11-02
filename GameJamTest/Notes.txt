@@ -1,0 +1,4 @@
+Unwrapping the rope:
+Have the player cast a linecast toward the grapple point's parent, if nothing collides then unwrap the rope
+
+Wrapping the rope:

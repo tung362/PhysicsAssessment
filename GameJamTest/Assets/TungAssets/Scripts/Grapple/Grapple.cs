@@ -99,42 +99,6 @@ public class Grapple : MonoBehaviour
                         closestDistance = distance;
                         closestVectice = pointWorldPosition;
                     }
-
-
-                    //Second Closest Point/////////////////////////////////////
-                    Vector2 SecondclosestVectice = Vector3.zero;
-                    float SecondclosestDistance = int.MaxValue;
-                    foreach (Vector2 point2 in points)
-                    {
-                        //Getting local space position
-                        Vector2 rotatedPoint2 = hit.transform.TransformDirection(point2.x * (hit.transform.localScale.x + 0.055f),
-                                                                                            point.y * (hit.transform.localScale.y + 0.055f),
-                                                                                            transform.position.z);
-                        //Getting world position
-                        Vector2 pointWorldPosition2 = worldPosition + rotatedPoint2;
-
-                        //Second closest point calculation
-                        float secondDistance = Vector2.Distance(hit.point, pointWorldPosition2);
-                        if (secondDistance < SecondclosestDistance && pointWorldPosition2 != closestVectice)
-                        {
-                            SecondclosestDistance = secondDistance;
-                            SecondclosestVectice = pointWorldPosition2;
-                        }
-                    }
-                    ////////////////////////////////////////////////////////////
-
-                    Vector2 lastDir = (lastPos - Start).normalized;
-
-                    Vector2 currDir = (End - Start).normalized;
-                    Vector2 midDir = (currDir - lastPos) * 0.5f;
-
-                    Vector2 a = (point - Start).normalized;
-                    Vector2 b = (SecondclosestVectice - Start).normalized;
-
-                    float disA = Vector2.Distance(midDir, a);
-                    float disB = Vector2.Distance(midDir, b);
-
-                    if (disA > disB) closestVectice = SecondclosestVectice;
                 }
 
                 AnchorConnectionPoints.Add(closestVectice);
@@ -175,71 +139,6 @@ public class Grapple : MonoBehaviour
         //    Test.transform.position = hit.transform.position + closestVectice;
         //    AnchorConnectionPoints.Add(hit.transform.position + closestVectice);
         //}
-    }
-
-    IEnumerator WallCheckCo(Vector2 Start, Vector2 End)
-    {
-        RaycastHit2D hit = Physics2D.Linecast(Start, End);
-
-        Debug.DrawLine(Start, End);
-
-        if (hit.transform.gameObject.name == "Platform")
-        {
-            if (hit.transform.GetComponent<CircleCollider2D>() != null)
-            {
-                Vector2 ObjectCenter = hit.transform.position;
-                Vector2 hitDirection = (ObjectCenter - hit.point).normalized;
-                AnchorConnectionPoints.Add(ObjectCenter - ((new Vector2(hitDirection.x * hit.transform.localScale.x, hitDirection.y * hit.transform.localScale.y)) * hit.transform.GetComponent<CircleCollider2D>().radius * 1.05f)); //Offset
-            }
-            else if (hit.transform.GetComponent<BoxCollider2D>() != null)
-            {
-                //Define edge points of the box collider
-                BoxCollider2D theCollider = hit.transform.GetComponent<BoxCollider2D>();
-                Vector2 size = theCollider.size;
-                Vector2 worldPosition = hit.transform.TransformPoint(theCollider.offset);
-
-                float up = (size.y / 2);
-                float down = -(size.y / 2);
-                float right = (size.x / 2);
-                float left = -(size.x / 2);
-
-                List<Vector2> points = new List<Vector2>();
-                points.Add(new Vector2(up, left));
-                points.Add(new Vector2(down, left));
-                points.Add(new Vector2(up, right));
-                points.Add(new Vector2(down, right));
-
-
-                //Find closest edge point
-                Vector3 closestVectice = Vector3.zero;
-                float closestDistance = int.MaxValue;
-                foreach (Vector2 point in points)
-                {
-                    Vector2 rotatedPoint = hit.transform.TransformDirection(point.x * (hit.transform.localScale.x + 0.055f),
-                                                                                        point.y * (hit.transform.localScale.y + 0.055f),
-                                                                                        transform.position.z);
-
-                    Vector2 pointWorldPosition = worldPosition + rotatedPoint;
-                    float distance = Vector2.Distance(hit.point, pointWorldPosition);
-
-                    if (distance < closestDistance && pointWorldPosition != Start)
-                    {
-                        closestDistance = distance;
-                        closestVectice = pointWorldPosition;
-                    }
-                }
-
-                AnchorConnectionPoints.Add(closestVectice);
-            }
-            //To do: support poly Collider
-            else if (hit.transform.GetComponent<PolygonCollider2D>() != null)
-            {
-
-            }
-
-            //WallCheck(AnchorConnectionPoints[AnchorConnectionPoints.Count - 1], transform.position);
-            yield return null;
-        }
     }
 
         void Unwrap()

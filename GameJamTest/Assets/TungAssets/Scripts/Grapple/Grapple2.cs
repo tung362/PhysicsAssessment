@@ -9,7 +9,8 @@ public class Grapple2 : MonoBehaviour
     public List<Vector3> AnchorConnectionPoints; //First index reserved for hook
     private Vector2 Hook;
     private Vector2 PreviousHook;
-    private float PreviousDistance = -1;
+    private bool PreviousIsClockwise = true;
+    private bool CurrentIsClockwise = true;
 
     //Components
     private LineRenderer TheLineRenderer;
@@ -47,7 +48,7 @@ public class Grapple2 : MonoBehaviour
         //RaycastHit2D hitPrevious = Physics2D.Linecast(transform.position, PreviousHook);
 
         Debug.DrawLine(transform.position, Hook, Color.red);
-        Debug.DrawLine(transform.position, Hook, Color.blue);
+        Debug.DrawLine(transform.position, PreviousHook, Color.blue);
 
         //If the grappling hook collides with any platforms create a new point
         if (hit.collider != null)
@@ -58,9 +59,10 @@ public class Grapple2 : MonoBehaviour
                 UpdateLineRenderer();
                 PreviousHook = Hook;
                 Hook = OffsetedHitPoint(hit);
-                PreviousDistance = -1;
             }
         }
+
+        UnwrapCheck();
     }
 
     //Applys AnchorConnectionPoints to line renderer
@@ -83,9 +85,7 @@ public class Grapple2 : MonoBehaviour
         }
 
         if (AnchorConnectionPoints.Count > 1) PreviousHook = AnchorConnectionPoints[AnchorConnectionPoints.Count - 2];
-        else PreviousHook = new Vector2(0, 0);
-
-        PreviousDistance = -1;
+        else PreviousHook = Hook;
     }
 
     //Offsets the hit point away from the original
@@ -93,5 +93,29 @@ public class Grapple2 : MonoBehaviour
     {
         Vector2 direction = (hit.point - new Vector2(hit.transform.position.x, hit.transform.position.y)).normalized * 0.01f;
         return hit.point + direction;
+    }
+
+    void UnwrapCheck()
+    {
+
+        Vector2 hookDirection = (PreviousHook - Hook).normalized;
+        Vector2 playerDirection = (new Vector2(transform.position.x, transform.position.y) - Hook).normalized;
+
+        //float ang = Vector2.Angle(hookDirection, playerDirection);
+        //Vector3 testAgainst = Vector3.Cross(hookDirection, playerDirection);
+        //if (testAgainst.z > 0) ang = 360 - ang;
+
+        float augoo = Vector2.Dot(hookDirection, playerDirection);
+
+
+        //Debug.Log(testAgainst.z);
+
+        Debug.Log(augoo);
+
+        if (AnchorConnectionPoints.Count > 1)
+        {
+            //if (ang >= 180 && testAgainst.z > 0) GoBackAStep();
+            //if (ang <= 180 && testAgainst.z < 0) GoBackAStep();
+        }
     }
 }

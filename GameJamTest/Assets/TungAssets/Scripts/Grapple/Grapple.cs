@@ -2,147 +2,136 @@
 using System.Collections;
 using System.Collections.Generic;
 
+//Just stores the data used by the rope, wanted to avoid using multiple lists
+//If you don't like it, i can always switch it back to seperate lists
+[System.Serializable]
+public struct RopeData
+{
+    public Vector3 AnchorConnectionPoint;
+    public Vector2 Normal;
+    public RopeData(Vector3 aAnchorConnectionPoints)
+    {
+        AnchorConnectionPoint = aAnchorConnectionPoints;
+        Normal = Vector2.zero;
+    }
+    public RopeData(Vector3 aAnchorConnectionPoints, Vector2 aNormal)
+    {
+        AnchorConnectionPoint = aAnchorConnectionPoints;
+        Normal = aNormal;
+    }
+}
+
+//In Physics2DSettings make sure to uncheck "Queries Start In Collider"
 public class Grapple : MonoBehaviour
 {
-    public GameObject TheLine;
-    public GameObject Test;
+    public List<RopeData> RopeDatas; //First index reserved for hook, all the data of current and previous connected ropes
 
-    //Last connection point = the real connection point, the rest are fallbacks
-    public List<Vector3> AnchorConnectionPoints;
+    //Tracked Hook
+    public GameObject Hook; //The projectile that is the hook
+    private Vector2 HookEnd;
+    private Vector2 PreviousHookEnd;
 
+    //Tracked Grapple
+    private Vector2 GrappleEnd;
+    private Vector2 PreviousGrappleEnd;
+
+    //Components
+    private LineRenderer TheLineRenderer;
     private DistanceJoint2D TheDistanceJoint;
-    private Vector2 lastPos;
 
-    void Start()
+    void Start ()
     {
+        //Assigning components
+        TheLineRenderer = GetComponent<LineRenderer>();
         TheDistanceJoint = GetComponent<DistanceJoint2D>();
-        //StartCoroutine(WallCheckCo());
+
+        //Temporary//
+        //Setting the defaults
+        RopeDatas.Add(new RopeData(TheDistanceJoint.connectedAnchor)); //Start
+        GrappleEnd = TheDistanceJoint.connectedAnchor;
+        PreviousGrappleEnd = GrappleEnd;
+
+        //Applying list to line renderer
+        TheLineRenderer.SetVertexCount(RopeDatas.Count + 1);
+        TheLineRenderer.SetPosition(0, TheDistanceJoint.connectedAnchor);
+        TheLineRenderer.SetPosition(1, transform.position);
+        /////////////
     }
 
-    void FixedUpdate()
+    void Update ()
     {
-        //AnchorConnectionPoints.Clear();
-        //WallCheck(TheDistanceJoint.connectedAnchor, transform.position);
-        //AnchorConnectionPoints.Add(Vector2.zero);
-        //AnchorConnectionPoints[AnchorConnectionPoints.Count - 1
+        UpdateGrapple(); //Takes care of wrapping and unwrapping when the player moves
+        UpdateHook(); //Takes care of wrapping and unwrapping when the hook moves (The projectile that was shot out)
+    }
 
+    //The Core
+    void UpdateGrapple()
+    {
+        UpdateLineRenderer();
+        RaycastHit2D hit = Physics2D.Linecast(transform.position, GrappleEnd); //Linecast from the player to the last valid hit point
 
-        if (AnchorConnectionPoints.Count == 0)
+        Debug.DrawLine(transform.position, GrappleEnd, Color.red);
+        Debug.DrawLine(transform.position, PreviousGrappleEnd, Color.blue);
+
+        //If the grappling hook collides with any platforms create a new point (Wrapping)
+        if (hit.collider != null)
         {
-            WallCheck(TheDistanceJoint.connectedAnchor, transform.position); //0
-            //StartCoroutine(WallCheckCo(TheDistanceJoint.connectedAnchor, transform.position));
+            if (hit.transform.gameObject.name == "Platform")
+            {
+                RopeDatas.Add(new RopeData(OffsetedHitPoint(hit), hit.normal));
+                UpdateLineRenderer();
+                PreviousGrappleEnd = GrappleEnd;
+                GrappleEnd = OffsetedHitPoint(hit);
+            }
         }
-        else
-        {
-            WallCheck(AnchorConnectionPoints[AnchorConnectionPoints.Count - 1], transform.position); //1
-            //StartCoroutine(WallCheckCo(AnchorConnectionPoints[AnchorConnectionPoints.Count - 1], transform.position));
-            TheLine.GetComponent<LineRenderer>().SetVertexCount(AnchorConnectionPoints.Count + 1); //|2
-            TheLine.GetComponent<LineRenderer>().SetPositions(AnchorConnectionPoints.ToArray());
+        UnwrapCheck();
+    }
 
-            TheLine.GetComponent<LineRenderer>().SetPosition(0, TheDistanceJoint.connectedAnchor);
-            TheLine.GetComponent<LineRenderer>().SetPosition(AnchorConnectionPoints.Count, AnchorConnectionPoints[AnchorConnectionPoints.Count - 1]);
-            //Test.transform.position = AnchorConnectionPoints[AnchorConnectionPoints.Count - 1];
+    void UpdateHook()
+    {
+    }
+
+    //Unwraps the rope
+    void UnwrapCheck()
+    {
+        //Don't ask me how it works, this gave me nightmares >:V
+        if (RopeDatas.Count > 1)
+        {
+            Vector2 hookDirection = (PreviousGrappleEnd - GrappleEnd).normalized;
+            Vector2 playerDirection = (new Vector2(transform.position.x, transform.position.y) - GrappleEnd).normalized;
+            Vector2 normalDirection = ((GrappleEnd - RopeDatas[RopeDatas.Count - 1].Normal) - GrappleEnd).normalized;
+
+            float dot = Vector2.Dot(playerDirection, new Vector2(-hookDirection.y, hookDirection.x));
+            float dotNormal = Vector2.Dot(normalDirection, new Vector2(-hookDirection.y, hookDirection.x));
+
+            if ((dotNormal > 0 && dot < 0) || (dotNormal < 0 && dot > 0)) GoBackAStep();
         }
     }
 
-    //Only supports box and circle colliders >:V
-    void WallCheck(Vector2 Start, Vector2 End)
+    //Reverting back a point (Unwrap)
+    void GoBackAStep()
     {
-        RaycastHit2D hit = Physics2D.Linecast(Start, End);        
+        GrappleEnd = PreviousGrappleEnd;
+        if (RopeDatas.Count > 2) PreviousGrappleEnd = RopeDatas[RopeDatas.Count - 3].AnchorConnectionPoint;
+        else PreviousGrappleEnd = GrappleEnd;
 
-        Debug.DrawLine(Start, End);
-
-        if (hit.transform.gameObject.name == "Platform")
-        {
-            if (hit.transform.GetComponent<CircleCollider2D>() != null)
-            {
-                Vector2 ObjectCenter = hit.transform.position;
-                Vector2 hitDirection = (ObjectCenter - hit.point).normalized;
-                AnchorConnectionPoints.Add(ObjectCenter - ((new Vector2(hitDirection.x * hit.transform.localScale.x, hitDirection.y * hit.transform.localScale.y)) * hit.transform.GetComponent<CircleCollider2D>().radius * 1.05f)); //Offset
-            }
-            else if (hit.transform.GetComponent<BoxCollider2D>() != null)
-            {
-                //Define edge points of the box collider
-                BoxCollider2D theCollider = hit.transform.GetComponent<BoxCollider2D>();
-                Vector2 size = theCollider.size;
-                Vector2 worldPosition = hit.transform.TransformPoint(theCollider.offset);
-
-                float up = (size.y / 2);
-                float down = -(size.y / 2);
-                float right = (size.x / 2);
-                float left = -(size.x / 2);
-
-                List<Vector2> points = new List<Vector2>();
-                points.Add(new Vector2(up, left));
-                points.Add(new Vector2(down, left));
-                points.Add(new Vector2(up, right));
-                points.Add(new Vector2(down, right));
-
-
-                //Find closest edge point
-                Vector2 closestVectice = Vector3.zero;
-                float closestDistance = int.MaxValue;
-                foreach (Vector2 point in points)
-                {
-                    //Getting local space position
-                    Vector2 rotatedPoint = hit.transform.TransformDirection(point.x * (hit.transform.localScale.x + 0.055f),
-                                                                                        point.y * (hit.transform.localScale.y + 0.055f),
-                                                                                        transform.position.z);
-
-                    //Getting world position
-                    Vector2 pointWorldPosition = worldPosition + rotatedPoint;
-
-                    //Closest point calculation
-                    float distance = Vector2.Distance(hit.point, pointWorldPosition);
-                    if (distance < closestDistance && pointWorldPosition != Start)
-                    {
-                        closestDistance = distance;
-                        closestVectice = pointWorldPosition;
-                    }
-                }
-
-                AnchorConnectionPoints.Add(closestVectice);
-            }
-            //To do: support poly Collider
-            else if (hit.transform.GetComponent<PolygonCollider2D>() != null)
-            {
-
-            }
-
-            //WallCheck(AnchorConnectionPoints[AnchorConnectionPoints.Count - 1], transform.position);
-            lastPos = transform.position;
-        }
-        //if (hit.transform.gameObject.name == "Platform")
-        //{
-        //    //(hit.normal * 0.01f)
-        //    //AnchorConnectionPoints.Add(hit.point);
-
-        //    Vector3 closestVectice = Vector3.zero;
-        //    float closestDistance = int.MaxValue;
-        //    foreach(Vector3 point in hit.transform.GetComponent<MeshFilter>().mesh.vertices)
-        //    {
-        //        Vector3 rotatedPoint = hit.transform.TransformDirection(new Vector3(point.x * (hit.transform.localScale.x + 0.055f),
-        //                                                                            point.y * (hit.transform.localScale.y + 0.055f),
-        //                                                                            point.z * (hit.transform.localScale.z + 0.055f)));
-
-        //        float distance = Vector2.Distance(hit.point, hit.transform.position + rotatedPoint);
-        //        Vector2 flatRotatedPoint = hit.transform.position + rotatedPoint;
-
-        //        if (distance < closestDistance && flatRotatedPoint != new Vector2(Start.x, Start.y))
-        //        {
-        //            closestDistance = distance;
-        //            closestVectice = rotatedPoint;
-        //        }
-        //    }
-
-        //    //Debug.Log((hit.transform.position + closestVectice).x);
-        //    Test.transform.position = hit.transform.position + closestVectice;
-        //    AnchorConnectionPoints.Add(hit.transform.position + closestVectice);
-        //}
+        RopeDatas.RemoveAt(RopeDatas.Count - 1);
+        UpdateLineRenderer();
     }
 
-        void Unwrap()
+    //Offsets the hit point away from the original
+    Vector2 OffsetedHitPoint(RaycastHit2D hit)
     {
+        Vector2 direction = (hit.point - new Vector2(hit.transform.position.x, hit.transform.position.y)).normalized * 0.01f;
+        return hit.point + direction;
+    }
 
+    //Applys AnchorConnectionPoints to line renderer
+    void UpdateLineRenderer()
+    {
+        TheLineRenderer.SetVertexCount(RopeDatas.Count + 1); //+1 because there needs to be extra room for the end point
+        TheLineRenderer.SetPosition(0, TheDistanceJoint.connectedAnchor); //Start
+        for (int i = 1; i < RopeDatas.Count; ++i) TheLineRenderer.SetPosition(i, RopeDatas[i].AnchorConnectionPoint); //Applying all the AnchorConnectionPoints to the line renderer (should have one spot left)
+        TheLineRenderer.SetPosition(RopeDatas.Count, transform.position); //End
     }
 }

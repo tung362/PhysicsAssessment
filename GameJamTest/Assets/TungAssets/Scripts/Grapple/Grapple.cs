@@ -9,20 +9,17 @@ public struct RopeData
 {
     public Vector3 AnchorConnectionPoint;
     public Vector2 Normal;
-    public Vector2 HitPoint;
     public bool HookSide;
-    public RopeData(Vector3 aAnchorConnectionPoints, Vector2 ahitPoint, bool isHookSide)
+    public RopeData(Vector3 aAnchorConnectionPoints, bool isHookSide)
     {
         AnchorConnectionPoint = aAnchorConnectionPoints;
         Normal = Vector2.zero;
-        HitPoint = ahitPoint;
         HookSide = isHookSide;
     }
-    public RopeData(Vector3 aAnchorConnectionPoints, Vector2 aNormal, Vector2 ahitPoint, bool isHookSide)
+    public RopeData(Vector3 aAnchorConnectionPoints, Vector2 aNormal, bool isHookSide)
     {
         AnchorConnectionPoint = aAnchorConnectionPoints;
         Normal = aNormal;
-        HitPoint = ahitPoint;
         HookSide = isHookSide;
     }
 }
@@ -58,7 +55,7 @@ public class Grapple : MonoBehaviour
         TheDistanceJoint = GetComponent<DistanceJoint2D>();
 
         //Temporary//
-        RopeDatas.Add(new RopeData(Vector3.zero, Vector2.zero, false)); //Start
+        RopeDatas.Add(new RopeData(Vector3.zero, false)); //Start
     }
 
     void Update ()
@@ -66,19 +63,33 @@ public class Grapple : MonoBehaviour
         //If there is an actual hook
         if(Hook != null)
         {
-            //Enable DistanceJoint2D
-            if (TheDistanceJoint.enabled == false) TheDistanceJoint.enabled = true;
-
             //Default
             if (RopeDatas.Count == 1)
             {
                 //Grapple
-                RopeDatas[0] = new RopeData(Hook.transform.position, Vector2.zero, false);
+                RopeDatas[0] = new RopeData(Hook.transform.position, false);
                 GrappleEnd = ToVec2(RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint);
                 PreviousGrappleEnd = GrappleEnd;
                 //Hook
                 HookEnd = transform.position;
                 PreviousHookEnd = HookEnd;
+            }
+            else
+            {
+                //Enable DistanceJoint2D
+                if (TheDistanceJoint.enabled == false) TheDistanceJoint.enabled = true;
+            }
+            //Enable DistanceJoint2D if the hook has stuck onto a platform
+            if (Hook.GetComponent<Hook>().HasHit)
+            {
+                if (TheDistanceJoint.enabled == false)
+                {
+                    TheDistanceJoint.enabled = true;
+                    //Assign new distance
+                    TheDistanceJoint.distance = Vector2.Distance(RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint, transform.position);
+                    //Anchor point always at last point
+                    TheDistanceJoint.connectedAnchor = RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint;
+                }
             }
 
             //Takes care of wrapping and unwrapping when the hook moves (The projectile that was shot out)
@@ -109,10 +120,14 @@ public class Grapple : MonoBehaviour
         {
             if (hit.transform.tag == "Platform")
             {
-                RopeDatas.Insert(1, new RopeData(OffsetedHitPoint(hit), hit.normal, hit.point, true));
+
+                RopeDatas.Insert(1, new RopeData(OffsetedHitPoint(hit), hit.normal, true));
                 UpdateLineRenderer();
                 PreviousHookEnd = HookEnd;
                 HookEnd = OffsetedHitPoint(hit);
+
+                //Distance
+                if (RopeDatas.Count == 2) TheDistanceJoint.distance = Vector2.Distance(transform.position, RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint);
             }
         }
     }
@@ -132,10 +147,13 @@ public class Grapple : MonoBehaviour
         {
             if (hit.transform.tag == "Platform")
             {
-                RopeDatas.Add(new RopeData(OffsetedHitPoint(hit), hit.normal, hit.point, false));
-                UpdateLineRenderer();
+                RopeDatas.Add(new RopeData(OffsetedHitPoint(hit), hit.normal, false));
                 PreviousGrappleEnd = GrappleEnd;
                 GrappleEnd = OffsetedHitPoint(hit);
+                TheDistanceJoint.distance = TheDistanceJoint.distance - Vector2.Distance(RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint, RopeDatas[RopeDatas.Count - 2].AnchorConnectionPoint);
+                //Anchor point always at last point
+                TheDistanceJoint.connectedAnchor = RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint;
+                UpdateLineRenderer();
             }
         }
     }
@@ -160,10 +178,6 @@ public class Grapple : MonoBehaviour
 
             float hookDot = Vector2.Dot(hookPlayerDirection, new Vector2(-hookDirection.y, hookDirection.x));
             float hookDotNormal = Vector2.Dot(hookNormalDirection, new Vector2(-hookDirection.y, hookDirection.x));
-
-            //Double Check
-            RaycastHit2D hit = Physics2D.Linecast(transform.position, RopeDatas[RopeDatas.Count - 1].HitPoint);
-            Debug.DrawLine(transform.position, RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint, Color.yellow);
 
             //Unwrap
             //If the grapple is unwrapping on it's side instead of the hook's side
@@ -239,11 +253,18 @@ public class Grapple : MonoBehaviour
     {
         GrapplePreviousNormal = RopeDatas[RopeDatas.Count - 1].Normal;
 
+        //Distance
+        TheDistanceJoint.distance = TheDistanceJoint.distance + Vector2.Distance(RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint, RopeDatas[RopeDatas.Count - 2].AnchorConnectionPoint);
+
         GrappleEnd = PreviousGrappleEnd;
         if (RopeDatas.Count > 2) PreviousGrappleEnd = RopeDatas[RopeDatas.Count - 3].AnchorConnectionPoint;
         else PreviousGrappleEnd = GrappleEnd;
 
         RopeDatas.RemoveAt(RopeDatas.Count - 1);
+
+        //Anchor point always at last point
+        TheDistanceJoint.connectedAnchor = RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint;
+
         UpdateLineRenderer();
     }
 
@@ -274,9 +295,6 @@ public class Grapple : MonoBehaviour
         TheLineRenderer.SetPosition(0, Hook.transform.position); //End
         for (int i = 1; i < RopeDatas.Count; ++i) TheLineRenderer.SetPosition(i, RopeDatas[i].AnchorConnectionPoint); //Applying all the AnchorConnectionPoints to the line renderer (should have one spot left)
         TheLineRenderer.SetPosition(RopeDatas.Count, transform.position); //End
-
-        //Anchor point always at last point
-        TheDistanceJoint.connectedAnchor = RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint;
     }
 
     //Call on this function when creating a new grapple hook, resets everything
@@ -284,7 +302,8 @@ public class Grapple : MonoBehaviour
     {
         Hook = null;
         RopeDatas.Clear();
-        RopeDatas.Add(new RopeData(Vector3.zero, Vector2.zero, false)); //Start
+        RopeDatas.Add(new RopeData(Vector3.zero, false)); //Start
+        if (TheDistanceJoint.enabled == true) TheDistanceJoint.enabled = false;
     }
 
     Vector2 ToVec2(Vector3 vec2)

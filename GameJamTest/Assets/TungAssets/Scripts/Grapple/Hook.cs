@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Hook : MonoBehaviour
 {
+    public bool HasHit = false;
 
 	// Use this for initialization
 	void Start () {
@@ -22,6 +23,7 @@ public class Hook : MonoBehaviour
             transform.parent = other.transform;
             Destroy(transform.GetComponent<Rigidbody2D>());
             Destroy(transform.GetComponent<Collider2D>());
+            HasHit = true;
         }
     }
 }

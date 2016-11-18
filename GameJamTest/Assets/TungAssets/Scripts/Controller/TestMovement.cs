@@ -5,7 +5,6 @@ public class TestMovement : MonoBehaviour
 {
     public bool useVelocity = true;
     public float Speed = 10;
-    public float GrappleSpeed = 0.5f;
 
     private Rigidbody2D TheRigidbody;
     private DistanceJoint2D TheDistanceJoint;
@@ -27,9 +26,5 @@ public class TestMovement : MonoBehaviour
 
         if(useVelocity == true) TheRigidbody.velocity = new Vector2(TheRigidbody.velocity.x + (movement.x * Speed * Time.deltaTime), TheRigidbody.velocity.y + (movement.y * Speed * Time.fixedDeltaTime));
         else transform.position += movement * Speed * Time.deltaTime;
-
-        //Apply Grapple
-        if (Input.GetKey(KeyCode.Space)) TheDistanceJoint.distance += GrappleSpeed * Time.fixedDeltaTime;
-        if (Input.GetKey(KeyCode.LeftShift)) TheDistanceJoint.distance -= GrappleSpeed * Time.fixedDeltaTime;
     }
 }

@@ -24,9 +24,15 @@ public struct RopeData
     }
 }
 
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(DistanceJoint2D))]
+[RequireComponent(typeof(LineRenderer))]
 //In Physics2DSettings make sure to uncheck "Queries Start In Collider"
 public class Grapple : MonoBehaviour
 {
+    //Settings
+    public float GrappleSpeed = 0.5f;
+
     //First index reserved for hook, all the data of current and previous connected ropes
     public List<RopeData> RopeDatas;
 
@@ -43,6 +49,8 @@ public class Grapple : MonoBehaviour
     private Vector2 PreviousGrappleEnd;
     //Used for unwrapping the first point
     private Vector2 GrapplePreviousNormal;
+
+    private bool RunOnce = false;
 
     //Components
     private LineRenderer TheLineRenderer;
@@ -63,6 +71,8 @@ public class Grapple : MonoBehaviour
         //If there is an actual hook
         if(Hook != null)
         {
+            Inputs();
+
             //Default
             if (RopeDatas.Count == 1)
             {
@@ -73,11 +83,21 @@ public class Grapple : MonoBehaviour
                 //Hook
                 HookEnd = transform.position;
                 PreviousHookEnd = HookEnd;
+
+                if(RunOnce)
+                {
+                    //Assign new distance
+                    TheDistanceJoint.distance = Vector2.Distance(Hook.transform.position, transform.position);
+                    //Anchor point always at last point
+                    TheDistanceJoint.connectedAnchor = RopeDatas[RopeDatas.Count - 1].AnchorConnectionPoint;
+                    RunOnce = false;
+                }
             }
             else
             {
                 //Enable DistanceJoint2D
                 if (TheDistanceJoint.enabled == false) TheDistanceJoint.enabled = true;
+                if (RunOnce == false) RunOnce = true;
             }
             //Enable DistanceJoint2D if the hook has stuck onto a platform
             if (Hook.GetComponent<Hook>().HasHit)
@@ -103,6 +123,14 @@ public class Grapple : MonoBehaviour
             //Disable DistanceJoint2D when not being used
             if (TheDistanceJoint.enabled == true) TheDistanceJoint.enabled = false;
         }
+    }
+
+    //Handles all the controls
+    void Inputs()
+    {
+        //Apply To Grapple
+        if (Input.GetKey(KeyCode.Space)) TheDistanceJoint.distance += GrappleSpeed * Time.fixedDeltaTime;
+        if (Input.GetKey(KeyCode.LeftShift)) TheDistanceJoint.distance -= GrappleSpeed * Time.fixedDeltaTime;
     }
 
     //Hook to player
@@ -284,7 +312,7 @@ public class Grapple : MonoBehaviour
     //Offsets the hit point away from the original
     Vector2 OffsetedHitPoint(RaycastHit2D hit)
     {
-        Vector2 direction = (hit.point - new Vector2(hit.transform.position.x, hit.transform.position.y)).normalized * 0.01f;
+        Vector2 direction = (hit.point - ToVec2(hit.transform.position)).normalized * 0.01f;
         return hit.point + direction;
     }
 

@@ -4,22 +4,16 @@ using UnityEngine.SceneManagement;
 
 public class MenuButton : MonoBehaviour
 {
-    public string NextLevel;
-    public GameObject TextInputObject1;
-    public GameObject TextInputObject2;
-    public GameObject TextInputObject3;
-    public GameObject TextInputObject4;
-    public GameObject TextInputObject5;
-
-    public void Join()
+    public void AppearOnClick(int ID)
     {
-        TextInputObject1.GetComponent<AppearOnCall>().Called = true;
-        TextInputObject2.GetComponent<AppearOnCall>().Called = true;
-        TextInputObject3.GetComponent<AppearOnCall>().Called = true;
-        TextInputObject4.GetComponent<AppearOnCall>().Called = true;
-        TextInputObject5.GetComponent<AppearOnCall>().Called = true;
+        AppearOnCall[] AppearOnCalls = FindObjectsOfType(typeof(AppearOnCall)) as AppearOnCall[];
+        foreach(AppearOnCall objectsToAppear in AppearOnCalls)
+        {
+            if (objectsToAppear.ID == ID) objectsToAppear.Called = true;
+        }
     }
-    public void Host()
+
+    public void LoadLevel(string NextLevel)
     {
         SceneManager.LoadScene(NextLevel);
     }
